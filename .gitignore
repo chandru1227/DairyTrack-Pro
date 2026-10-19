@@ -1,0 +1,25 @@
+# Backend build files
+dairytrack/target/
+
+# Backend secrets and configuration
+dairytrack/src/main/resources/application.properties
+dairytrack/src/main/resources/application-*.properties
+
+# Frontend dependencies and build output
+dairytrack-frontend/node_modules/
+dairytrack-frontend/dist/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+
+# IDE files
+.idea/
+**/.idea/
+*.iml
+
+# Logs
+*.log

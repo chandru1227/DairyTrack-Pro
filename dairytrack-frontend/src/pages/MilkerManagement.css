@@ -1,0 +1,547 @@
+
+.milker-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: #1f2937;
+}
+
+.milker-header,
+.milker-section-heading,
+.milker-profile-top,
+.milker-rate-row,
+.milker-card-actions,
+.milker-form-actions,
+.milker-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.milker-header {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.milker-header h1 {
+  margin: 6px 0;
+  font-size: 30px;
+}
+
+.milker-header p,
+.milker-section-heading p {
+  margin: 4px 0 0;
+  color: #6b7280;
+}
+
+.milker-eyebrow {
+  color: #16804a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.milker-panel {
+  padding: 22px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgb(15 23 42 / 4%);
+}
+
+.milker-section-heading {
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.milker-section-heading h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.milker-primary-button,
+.milker-secondary-button,
+.milker-pay-button {
+  min-height: 38px;
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.milker-primary-button {
+  background: #16804a;
+  color: #fff;
+}
+
+.milker-primary-button:hover {
+  background: #11683c;
+}
+
+.milker-secondary-button {
+  background: #fff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.milker-pay-button {
+  background: #e8f7ed;
+  color: #166534;
+  border-color: #bbebcb;
+}
+
+.milker-text-button {
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: #166534;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.milker-primary-button:disabled,
+.milker-secondary-button:disabled,
+.milker-pay-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.milker-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.milker-form label,
+.milker-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.milker-form input,
+.milker-form select,
+.milker-filters input {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.milker-form input:focus,
+.milker-form select:focus,
+.milker-filters input:focus {
+  outline: 2px solid #bbebcb;
+  border-color: #16804a;
+}
+
+.milker-form-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+  margin-top: 4px;
+}
+
+.milker-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.milker-profile-card {
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.milker-profile-selected {
+  border-color: #16804a;
+  box-shadow: 0 0 0 2px rgb(22 128 74 / 10%);
+}
+
+.milker-avatar {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e8f7ed;
+  color: #166534;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.milker-profile-card h3 {
+  margin: 14px 0 4px;
+  font-size: 17px;
+}
+
+.milker-phone {
+  min-height: 20px;
+  margin: 0 0 14px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.milker-rate-row {
+  padding: 9px 0;
+  border-top: 1px solid #f0f1f3;
+  font-size: 13px;
+}
+
+.milker-rate-row span {
+  color: #6b7280;
+}
+
+.milker-card-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.milker-status-active,
+.milker-status-inactive {
+  display: inline-block;
+  padding: 5px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.milker-status-active {
+  background: #e8f7ed;
+  color: #166534;
+}
+
+.milker-status-inactive {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.milker-filters {
+  justify-content: flex-start;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.milker-filters label {
+  min-width: 170px;
+}
+
+.milker-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.milker-summary-grid article {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #edf0f3;
+  border-radius: 10px;
+}
+
+.milker-summary-grid span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.milker-summary-grid strong {
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.milker-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.milker-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.milker-table th,
+.milker-table td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.milker-table th {
+  background: #f8fafc;
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.milker-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.milker-empty-cell {
+  padding: 28px !important;
+  color: #6b7280;
+  text-align: center !important;
+}
+
+.milker-empty,
+.milker-muted {
+  color: #6b7280;
+}
+
+.milker-empty {
+  padding: 18px 0;
+}
+
+.milker-alert {
+  padding: 13px 15px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 14px;
+}
+
+.milker-alert-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.milker-alert-success {
+  background: #e8f7ed;
+  border-color: #bbebcb;
+  color: #166534;
+}
+
+@media (max-width: 900px) {
+  .milker-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .milker-panel {
+    padding: 15px;
+  }
+
+  .milker-form {
+    grid-template-columns: 1fr;
+  }
+
+  .milker-summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .milker-header h1 {
+    font-size: 25px;
+  }
+}
+.salary-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.salary-modal {
+  width: 100%;
+  max-width: 460px;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2);
+  animation: salary-modal-enter 160ms ease-out;
+}
+
+.salary-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.salary-modal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #e5f5eb;
+  color: #167447;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.salary-modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.salary-modal-close:hover {
+  background: #e5e7eb;
+}
+
+.salary-modal h2 {
+  margin: 0 0 8px;
+  color: #111827;
+  font-size: 23px;
+  font-weight: 750;
+}
+
+.salary-modal-description {
+  margin: 0 0 22px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.salary-modal-details {
+  display: grid;
+  gap: 0;
+  padding: 4px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.salary-modal-details > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.salary-modal-details > div:last-child {
+  border-bottom: none;
+}
+
+.salary-modal-details span,
+.salary-modal-amount span {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.salary-modal-details strong {
+  color: #111827;
+  font-size: 14px;
+  text-align: right;
+}
+
+.salary-modal-details .salary-modal-present {
+  color: #167447;
+}
+
+.salary-modal-amount {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 14px;
+  background: #eaf7ef;
+}
+
+.salary-modal-amount strong {
+  color: #167447;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+}
+
+.salary-modal-note {
+  margin: 16px 0 22px;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.salary-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.salary-modal-actions button {
+  min-height: 42px;
+}
+
+.salary-modal-actions button:disabled,
+.salary-modal-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@keyframes salary-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .salary-modal {
+    padding: 22px;
+    border-radius: 16px;
+  }
+
+  .salary-modal h2 {
+    font-size: 20px;
+  }
+
+  .salary-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .salary-modal-actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .salary-modal {
+    animation: none;
+  }
+}

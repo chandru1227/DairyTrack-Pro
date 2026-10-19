@@ -1,0 +1,132 @@
+
+.customer-sales-report .customer-sales-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.customer-sales-report .customer-sales-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.customer-sales-report .customer-sales-table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.customer-sales-report .customer-sales-table th {
+  padding: 15px 18px;
+  background: #f8faf9;
+  color: #52615a;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.customer-sales-report .customer-sales-table td {
+  padding: 16px 18px;
+  border-top: 1px solid #edf0ee;
+  font-size: 14px;
+}
+
+.customer-sales-report .customer-sales-table tbody tr:hover {
+  background: #fafcfb;
+}
+
+.customer-sales-report .customer-sales-table tfoot {
+  background: #f8faf9;
+}
+
+.customer-sales-report .customer-sales-table tfoot th {
+  padding: 15px 18px;
+  color: #172b24;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 13px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.customer-sales-report .customer-sales-name {
+  color: #172b24;
+}
+
+.customer-sales-report .customer-sales-legacy {
+  display: block;
+  margin-top: 5px;
+  color: #8a6d3b;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.customer-sales-report .customer-sales-due {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.customer-sales-report .customer-sales-settled {
+  color: #176b45;
+  font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  .customer-sales-report .customer-sales-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .customer-sales-report .customer-sales-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+.customer-sales-report .customer-history-button {
+  padding: 8px 12px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.customer-sales-report .customer-history-panel {
+  margin-top: 24px;
+}
+
+.customer-sales-report .customer-history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.customer-sales-report .customer-payment-status {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.customer-sales-report .customer-status-paid {
+  background: #e7f6ed;
+  color: #176b45;
+}
+
+.customer-sales-report .customer-status-pending {
+  background: #fff3dc;
+  color: #8a5a00;
+}
+
+.customer-sales-report .customer-status-partially_paid {
+  background: #eaf2ff;
+  color: #2457a7;
+}
+
+@media (max-width: 600px) {
+  .customer-sales-report .customer-history-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

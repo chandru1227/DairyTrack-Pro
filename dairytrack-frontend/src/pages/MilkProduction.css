@@ -1,0 +1,270 @@
+
+.milk-page {
+  display: grid;
+  gap: 24px;
+}
+
+.milk-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.milk-breadcrumb {
+  color: #89948f;
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.milk-header h1 {
+  color: #192b25;
+  font-size: 27px;
+  letter-spacing: -0.8px;
+}
+
+.milk-subtitle {
+  margin-top: 8px;
+  color: #849089;
+  font-size: 12px;
+}
+
+.milk-date-control,
+.milk-field {
+  display: grid;
+  gap: 8px;
+}
+
+.milk-date-control label,
+.milk-field label {
+  color: #56665d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.milk-date-control input,
+.milk-field input,
+.milk-field select {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #dfe7e1;
+  border-radius: 8px;
+  background: white;
+  color: #263b30;
+  outline: none;
+}
+
+.milk-date-control input:focus,
+.milk-field input:focus,
+.milk-field select:focus {
+  border-color: #27835b;
+  box-shadow: 0 0 0 3px #27835b18;
+}
+
+.milk-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.milk-summary-card {
+  display: grid;
+  gap: 10px;
+  background: white;
+  border: 1px solid #e6ece7;
+  border-radius: 13px;
+  padding: 22px;
+}
+
+.milk-summary-card span {
+  color: #738078;
+  font-size: 12px;
+}
+
+.milk-summary-card strong {
+  color: #1d6345;
+  font-size: 29px;
+  letter-spacing: -0.8px;
+}
+
+.milk-summary-card small {
+  color: #929d96;
+  font-size: 11px;
+}
+
+.milk-panel {
+  min-width: 0;
+  background: white;
+  border: 1px solid #e6ece7;
+  border-radius: 13px;
+  padding: 24px;
+}
+
+.milk-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.milk-panel-heading h2 {
+  color: #24382e;
+  font-size: 16px;
+}
+
+.milk-panel-heading p {
+  color: #89958e;
+  font-size: 11px;
+  margin-top: 7px;
+}
+
+.milk-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 15px;
+}
+
+.milk-submit,
+.milk-refresh {
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  transition: opacity 0.2s;
+}
+
+.milk-submit {
+  background: #176b4d;
+  color: white;
+  white-space: nowrap;
+}
+
+.milk-refresh {
+  background: #eaf5ee;
+  color: #176b4d;
+}
+
+.milk-submit:hover,
+.milk-refresh:hover {
+  opacity: 0.85;
+}
+
+.milk-submit:disabled,
+.milk-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.milk-form-note {
+  margin-top: 17px;
+  color: #8a958e;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.milk-message {
+  padding: 13px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.milk-message.error {
+  background: #fff0f0;
+  border: 1px solid #f0cccc;
+  color: #a52b2b;
+}
+
+.milk-message.success {
+  background: #edf8f0;
+  border: 1px solid #d1ead8;
+  color: #236a42;
+}
+
+.milk-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.milk-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.milk-table th {
+  background: #f7f9f7;
+  color: #728078;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.milk-table th,
+.milk-table td {
+  padding: 14px 15px;
+  border-bottom: 1px solid #edf0ed;
+}
+
+.milk-table td {
+  color: #415148;
+  font-size: 12px;
+}
+
+.milk-session-badge {
+  display: inline-block;
+  background: #eaf5ee;
+  color: #176b4d;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.milk-empty {
+  text-align: center;
+  color: #8a958e !important;
+  padding: 28px !important;
+}
+
+@media (max-width: 1000px) {
+  .milk-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .milk-submit {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .milk-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .milk-date-control {
+    width: 100%;
+  }
+
+  .milk-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .milk-form {
+    grid-template-columns: 1fr;
+  }
+
+  .milk-panel {
+    padding: 17px;
+  }
+
+  .milk-panel-heading h2 {
+    font-size: 15px;
+  }
+}
