@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Digits;
-
+import com.dairytrack.security.AppUser;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -46,6 +46,9 @@ public class MilkProduction {
             message = "Milk quantity supports up to 2 decimal places")
     @Column(name = "quantity_litres", nullable = false, precision = 9, scale = 2)
     private BigDecimal quantityLitres;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recorded_by_user_id")
+    private AppUser recordedBy;
 
     public MilkProduction() {
     }
@@ -84,5 +87,13 @@ public class MilkProduction {
 
     public void setQuantityLitres(BigDecimal quantityLitres) {
         this.quantityLitres = quantityLitres;
+    }
+
+    public AppUser getRecordedBy() {
+        return recordedBy;
+    }
+
+    public void setRecordedBy(AppUser recordedBy) {
+        this.recordedBy = recordedBy;
     }
 }

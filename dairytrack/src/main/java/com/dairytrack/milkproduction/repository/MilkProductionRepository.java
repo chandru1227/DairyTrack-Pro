@@ -76,4 +76,19 @@ public interface MilkProductionRepository
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    List<MilkProduction> findByRecordedBy_IdAndProductionDateOrderBySessionAsc(
+            Long userId,
+            LocalDate productionDate
+    );
+
+    List<MilkProduction> findByRecordedBy_IdOrderByProductionDateDesc(
+            Long userId
+    );
+
+    List<MilkProduction> findByRecordedBy_IdAndProductionDateBetween(
+            Long userId,
+            LocalDate startDate,
+            LocalDate endDate
+    );
 }

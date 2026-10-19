@@ -23,3 +23,9 @@ dairytrack-frontend/dist/
 
 # Logs
 *.log
+
+
+# Local API test session and temporary files
+cookies.txt
+staged-files.txt
+taged-files.txt

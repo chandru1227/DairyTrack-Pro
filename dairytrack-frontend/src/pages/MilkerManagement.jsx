@@ -97,12 +97,16 @@ function MilkerManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [paymentRecord, setPaymentRecord] = useState(null);
+  const [accountMilker, setAccountMilker] = useState(null);
+  const [accountForm, setAccountForm] = useState({ username: '', password: '' });
 
   const [profileForm, setProfileForm] = useState({
     fullName: '',
     phoneNumber: '',
     morningRate: '300',
     eveningRate: '300',
+    username: '',
+    password: '',
   });
 
   const [attendanceForm, setAttendanceForm] = useState({
@@ -179,6 +183,8 @@ function MilkerManagement() {
       phoneNumber: '',
       morningRate: '300',
       eveningRate: '300',
+      username: '',
+      password: '',
     });
 
     setEditingId(null);
@@ -191,6 +197,8 @@ function MilkerManagement() {
       phoneNumber: milker.phoneNumber || '',
       morningRate: String(milker.morningRate ?? 300),
       eveningRate: String(milker.eveningRate ?? 300),
+      username: '',
+      password: '',
     });
 
     setEditingId(milker.id);
@@ -199,7 +207,7 @@ function MilkerManagement() {
     setError('');
   }
 
-  // Create or update a milker profile.
+  // Create or update a milker profile. New profiles also get a login account.
   async function saveProfile(event) {
     event.preventDefault();
 
@@ -207,6 +215,9 @@ function MilkerManagement() {
     setError('');
     setMessage('');
 
+    const isEditing = Boolean(editingId);
+    const username = profileForm.username.trim();
+    const password = profileForm.password;
     const payload = {
       fullName: profileForm.fullName.trim(),
       phoneNumber: profileForm.phoneNumber.trim(),
@@ -215,24 +226,73 @@ function MilkerManagement() {
     };
 
     try {
-      const saved = await request(
-        editingId ? `${API}/${editingId}` : API,
-        {
-          method: editingId ? 'PUT' : 'POST',
-          body: JSON.stringify(payload),
-        }
-      );
+      const saved = await request(isEditing ? `${API}/${editingId}` : API, {
+        method: isEditing ? 'PUT' : 'POST',
+        body: JSON.stringify(payload),
+      });
 
-      await loadMilkers();
       setSelectedId(String(saved.id));
+      await loadMilkers();
 
-      setMessage(
-        editingId ? 'Milker profile updated.' : 'Milker added.'
-      );
-
-      resetProfileForm();
+      if (!isEditing) {
+        try {
+          const account = await request('/api/auth/milker-account', {
+            method: 'POST',
+            body: JSON.stringify({
+              milkerId: saved.id,
+              username,
+              password,
+            }),
+          });
+          setMessage(`Milker added. Login created for ${account.milkerName}. Username: ${account.username}`);
+          resetProfileForm();
+        } catch (accountError) {
+          setError(`Milker profile was created, but login creation failed: ${accountError.message || 'Unknown error'}. Use Create login on this milker's card to try again.`);
+          resetProfileForm();
+        }
+      } else {
+        setMessage('Milker profile updated.');
+        resetProfileForm();
+      }
     } catch (err) {
       setError(err.message || 'Could not save milker profile.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function startCreateAccount(milker) {
+    setAccountMilker(milker);
+    setAccountForm({ username: '', password: '' });
+    setShowForm(false);
+    setEditingId(null);
+    setError('');
+    setMessage('');
+  }
+
+  async function saveAccount(event) {
+    event.preventDefault();
+    if (!accountMilker) return;
+
+    setSaving(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const account = await request('/api/auth/milker-account', {
+        method: 'POST',
+        body: JSON.stringify({
+          milkerId: accountMilker.id,
+          username: accountForm.username.trim(),
+          password: accountForm.password,
+        }),
+      });
+
+      setMessage(`Login created for ${account.milkerName}. Username: ${account.username}`);
+      setAccountMilker(null);
+      setAccountForm({ username: '', password: '' });
+    } catch (err) {
+      setError(err.message || 'Could not create the milker login.');
     } finally {
       setSaving(false);
     }
@@ -374,6 +434,8 @@ async function confirmSalaryPayment() {
               phoneNumber: '',
               morningRate: '300',
               eveningRate: '300',
+              username: '',
+              password: '',
             });
 
             setShowForm((value) => !value);
@@ -564,6 +626,35 @@ async function confirmSalaryPayment() {
               />
             </label>
 
+            {!editingId && (
+              <>
+                <label>
+                  Login username *
+                  <input
+                    required
+                    maxLength={60}
+                    autoComplete="username"
+                    value={profileForm.username}
+                    onChange={(event) => setProfileForm({ ...profileForm, username: event.target.value })}
+                    placeholder="Choose a unique username"
+                  />
+                </label>
+
+                <label>
+                  Login password *
+                  <input
+                    required
+                    type="password"
+                    minLength={12}
+                    autoComplete="new-password"
+                    value={profileForm.password}
+                    onChange={(event) => setProfileForm({ ...profileForm, password: event.target.value })}
+                    placeholder="At least 12 characters"
+                  />
+                </label>
+              </>
+            )}
+
             <div className="milker-form-actions">
               <button
                 className="milker-primary-button"
@@ -574,7 +665,7 @@ async function confirmSalaryPayment() {
                   ? 'Saving...'
                   : editingId
                     ? 'Save changes'
-                    : 'Create milker'}
+                    : 'Create milker + login'}
               </button>
 
               <button
@@ -583,6 +674,53 @@ async function confirmSalaryPayment() {
                 onClick={resetProfileForm}
                 disabled={saving}
               >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
+
+      {accountMilker && (
+        <section className="milker-panel">
+          <div className="milker-section-heading">
+            <div>
+              <h2>Create login for {accountMilker.fullName}</h2>
+              <p>This creates login credentials for the existing profile; it does not create another profile.</p>
+            </div>
+          </div>
+
+          <form className="milker-form" onSubmit={saveAccount}>
+            <label>
+              Login username *
+              <input
+                required
+                maxLength={60}
+                autoComplete="username"
+                value={accountForm.username}
+                onChange={(event) => setAccountForm({ ...accountForm, username: event.target.value })}
+                placeholder="Choose a unique username"
+              />
+            </label>
+
+            <label>
+              Login password *
+              <input
+                required
+                type="password"
+                minLength={12}
+                autoComplete="new-password"
+                value={accountForm.password}
+                onChange={(event) => setAccountForm({ ...accountForm, password: event.target.value })}
+                placeholder="At least 12 characters"
+              />
+            </label>
+
+            <div className="milker-form-actions">
+              <button type="submit" className="milker-primary-button" disabled={saving}>
+                {saving ? 'Creating...' : 'Create login'}
+              </button>
+              <button type="button" className="milker-secondary-button" disabled={saving} onClick={() => setAccountMilker(null)}>
                 Cancel
               </button>
             </div>
@@ -669,6 +807,14 @@ async function confirmSalaryPayment() {
                     {String(milker.id) === String(selectedId)
                       ? 'Selected'
                       : 'View records'}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="milker-secondary-button"
+                    onClick={() => startCreateAccount(milker)}
+                  >
+                    Create login
                   </button>
 
                   <button

@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
+import com.dairytrack.security.AppUser;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
+import com.dairytrack.security.AppUserRepository;
 @Service
 @Transactional
 public class MilkProductionService {
@@ -33,19 +33,22 @@ public class MilkProductionService {
 
     private final MilkProductionRepository milkRepository;
     private final CowRepository cowRepository;
-
+    private final AppUserRepository appUserRepository;
     public MilkProductionService(
             MilkProductionRepository milkRepository,
-            CowRepository cowRepository) {
+            CowRepository cowRepository,
+            AppUserRepository appUserRepository) {
         this.milkRepository = milkRepository;
         this.cowRepository = cowRepository;
+        this.appUserRepository = appUserRepository;
     }
 
     public MilkProductionResponse recordMilk(
             Long cowId,
             LocalDate date,
             MilkSession session,
-            BigDecimal quantityLitres) {
+            BigDecimal quantityLitres,
+            String username) {
 
         validateEntry(date, session, quantityLitres);
 
@@ -65,6 +68,19 @@ public class MilkProductionService {
         record.setProductionDate(date);
         record.setSession(session);
         record.setQuantityLitres(quantityLitres);
+
+        AppUser recordedBy = appUserRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "User account not found"));
+
+        if (!recordedBy.isActive()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "User account is inactive"
+            );
+        }
+
+        record.setRecordedBy(recordedBy);
 
         return MilkProductionResponse.from(
                 milkRepository.save(record)
@@ -107,60 +123,116 @@ public class MilkProductionService {
         );
     }
 
+//    @Transactional(readOnly = true)
     @Transactional(readOnly = true)
     public List<MilkProductionResponse> getMilkForDate(
-            LocalDate date) {
+            LocalDate date,
+            String username) {
 
         if (date == null) {
             throw badRequest("Production date is required");
         }
 
-        return milkRepository
-                .findByProductionDateOrderBySessionAsc(date)
-                .stream()
-                .map(MilkProductionResponse::from)
-                .toList();
-    }
+        AppUser user = appUserRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "User account not found"
+                ));
 
-    @Transactional(readOnly = true)
-    public List<MilkProductionResponse> getCowHistory(
-            Long cowId) {
-
-        if (!cowRepository.existsById(cowId)) {
+        if (!user.isActive()) {
             throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Cow not found with ID: " + cowId
+                    HttpStatus.UNAUTHORIZED,
+                    "User account is inactive"
             );
         }
 
-        return milkRepository
-                .findByCow_IdOrderByProductionDateDesc(cowId)
-                .stream()
+        List<MilkProduction> records;
+
+        if (user.getRole() == com.dairytrack.security.UserRole.OWNER) {
+            records = milkRepository
+                    .findByProductionDateOrderBySessionAsc(date);
+        } else {
+            records = milkRepository
+                    .findByRecordedBy_IdAndProductionDateOrderBySessionAsc(
+                            user.getId(), date
+                    );
+        }
+
+        return records.stream()
                 .map(MilkProductionResponse::from)
                 .toList();
     }
-
     @Transactional(readOnly = true)
-    public BigDecimal getDailyTotal(LocalDate date) {
+    public BigDecimal getDailyTotal(LocalDate date, String username) {
         requireDate(date);
-        return milkRepository.getTotalForDate(date);
+
+        AppUser user = appUserRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "User account not found"
+                ));
+
+        if (!user.isActive()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "User account is inactive"
+            );
+        }
+
+        if (user.getRole() == com.dairytrack.security.UserRole.OWNER) {
+            return milkRepository.getTotalForDate(date);
+        }
+
+        return milkRepository
+                .findByRecordedBy_IdAndProductionDateOrderBySessionAsc(
+                        user.getId(), date
+                )
+                .stream()
+                .map(MilkProduction::getQuantityLitres)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Transactional(readOnly = true)
-    public BigDecimal getWeeklyTotal(LocalDate date) {
+    public BigDecimal getWeeklyTotal(LocalDate date, String username) {
         requireDate(date);
+
+        AppUser user = appUserRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "User account not found"
+                ));
+
+        if (!user.isActive()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "User account is inactive"
+            );
+        }
 
         LocalDate start = date.with(
                 TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)
         );
+        LocalDate end = start.plusDays(6);
 
-        return milkRepository.getTotalBetweenDates(
-                start, start.plusDays(6)
-        );
+        if (user.getRole() == com.dairytrack.security.UserRole.OWNER) {
+            return milkRepository.getTotalBetweenDates(start, end);
+        }
+
+        return milkRepository
+                .findByRecordedBy_IdAndProductionDateBetween(
+                        user.getId(), start, end
+                )
+                .stream()
+                .map(MilkProduction::getQuantityLitres)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Transactional(readOnly = true)
-    public BigDecimal getMonthlyTotal(int year, int month) {
+    public BigDecimal getMonthlyTotal(
+            int year,
+            int month,
+            String username) {
+
         YearMonth yearMonth;
 
         try {
@@ -169,36 +241,147 @@ public class MilkProductionService {
             throw badRequest("A valid year and month are required");
         }
 
-        return milkRepository.getTotalBetweenDates(
-                yearMonth.atDay(1),
-                yearMonth.atEndOfMonth()
-        );
+        AppUser user = appUserRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "User account not found"
+                ));
+
+        if (!user.isActive()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "User account is inactive"
+            );
+        }
+
+        LocalDate start = yearMonth.atDay(1);
+        LocalDate end = yearMonth.atEndOfMonth();
+
+        if (user.getRole() == com.dairytrack.security.UserRole.OWNER) {
+            return milkRepository.getTotalBetweenDates(start, end);
+        }
+
+        return milkRepository
+                .findByRecordedBy_IdAndProductionDateBetween(
+                        user.getId(), start, end
+                )
+                .stream()
+                .map(MilkProduction::getQuantityLitres)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getCowComparison(
             LocalDate startDate,
-            LocalDate endDate) {
+            LocalDate endDate,
+            String username) {
 
         validateDateRange(startDate, endDate);
 
+        AppUser user = appUserRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "User account not found"
+                ));
+
+        if (!user.isActive()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "User account is inactive"
+            );
+        }
+
         List<Map<String, Object>> result = new ArrayList<>();
 
-        for (Object[] row :
-                milkRepository.getCowProductionComparison(
-                        startDate, endDate)) {
+        if (user.getRole() == com.dairytrack.security.UserRole.OWNER) {
+            for (Object[] row : milkRepository.getCowProductionComparison(
+                    startDate, endDate)) {
 
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("cowId", row[0]);
+                item.put("cowCode", row[1]);
+                item.put("totalLitres", row[2]);
+                result.add(item);
+            }
+
+            return result;
+        }
+
+        List<MilkProduction> records =
+                milkRepository.findByRecordedBy_IdAndProductionDateBetween(
+                        user.getId(), startDate, endDate
+                );
+
+        Map<Long, BigDecimal> totalsByCow = new LinkedHashMap<>();
+        Map<Long, String> cowCodes = new LinkedHashMap<>();
+
+        for (MilkProduction record : records) {
+            Long cowId = record.getCow().getId();
+
+            totalsByCow.merge(
+                    cowId,
+                    record.getQuantityLitres(),
+                    BigDecimal::add
+            );
+
+            cowCodes.put(cowId, record.getCow().getCowCode());
+        }
+
+        for (Map.Entry<Long, BigDecimal> entry : totalsByCow.entrySet()) {
             Map<String, Object> item = new LinkedHashMap<>();
-            item.put("cowId", row[0]);
-            item.put("cowCode", row[1]);
-            item.put("totalLitres", row[2]);
-
+            item.put("cowId", entry.getKey());
+            item.put("cowCode", cowCodes.get(entry.getKey()));
+            item.put("totalLitres", entry.getValue());
             result.add(item);
         }
 
         return result;
     }
 
+    @Transactional(readOnly = true)
+    public List<MilkProductionResponse> getCowHistory(
+            Long cowId,
+            String username) {
+
+        if (!cowRepository.existsById(cowId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Cow not found with ID: " + cowId
+            );
+        }
+
+        AppUser user = appUserRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "User account not found"
+                ));
+
+        if (!user.isActive()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "User account is inactive"
+            );
+        }
+
+        List<MilkProduction> records;
+
+        if (user.getRole() == com.dairytrack.security.UserRole.OWNER) {
+            records = milkRepository
+                    .findByCow_IdOrderByProductionDateDesc(cowId);
+        } else {
+            records = milkRepository
+                    .findByRecordedBy_IdOrderByProductionDateDesc(
+                            user.getId()
+                    )
+                    .stream()
+                    .filter(record -> record.getCow().getId().equals(cowId))
+                    .toList();
+        }
+
+        return records.stream()
+                .map(MilkProductionResponse::from)
+                .toList();
+    }
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getProductionDecreaseAlerts(
             LocalDate date) {
