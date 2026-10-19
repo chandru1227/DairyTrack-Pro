@@ -1,11 +1,13 @@
 
 import { useState } from 'react';
+import './Login.css';
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -13,7 +15,6 @@ function Login({ onLogin }) {
     setLoading(true);
 
     try {
-      // Step 1: Obtain a CSRF token.
       const csrfResponse = await fetch('/api/auth/csrf', {
         method: 'GET',
         credentials: 'same-origin',
@@ -28,10 +29,11 @@ function Login({ onLogin }) {
       const csrfData = await csrfResponse.json();
 
       if (!csrfData.token) {
-        throw new Error('Security token is missing. Please refresh the page.');
+        throw new Error(
+          'Security token is missing. Please refresh the page.'
+        );
       }
 
-      // Step 2: Submit login credentials with the CSRF token.
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -42,7 +44,6 @@ function Login({ onLogin }) {
         body: JSON.stringify({ username, password }),
       });
 
-      // Step 3: Read the response safely.
       const responseText = await response.text();
       let data = {};
 
@@ -56,7 +57,8 @@ function Login({ onLogin }) {
 
       if (!response.ok) {
         throw new Error(
-          data.message || 'Login failed. Please check your credentials and try again.'
+          data.message ||
+            'Login failed. Please check your credentials and try again.'
         );
       }
 
@@ -64,11 +66,11 @@ function Login({ onLogin }) {
         throw new Error('Your account has an unsupported role.');
       }
 
-      // Step 4: Notify the application of successful login.
       onLogin(data);
     } catch (err) {
       setError(
-        err.message || 'Unable to connect to the server. Please try again.'
+        err.message ||
+          'Unable to connect to the server. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -76,141 +78,170 @@ function Login({ onLogin }) {
   }
 
   return (
-    <main style={styles.page}>
-      <form style={styles.card} onSubmit={handleSubmit}>
-        <div style={styles.logo}>D</div>
+    <main className="login-page">
+      <section className="login-visual">
+        <div className="login-visual-overlay" />
 
-        <h1 style={styles.title}>DairyTrack Pro</h1>
-        <p style={styles.subtitle}>Sign in to your farm workspace</p>
+        <div className="login-brand">
+          <img
+  className="login-brand-image"
+  src="/dairytrack-icon.png"
+  alt="DairyTrack Pro"
+/>
+          <span>DairyTrack <strong>Pro</strong></span>
+        </div>
 
-        {error && (
-          <div role="alert" style={styles.error}>
-            {error}
+        <div className="login-visual-content">
+          <span className="login-eyebrow">
+            SMART DAIRY MANAGEMENT
+          </span>
+
+          <h1>
+            Better care.
+            <br />
+            Better milk.
+            <br />
+            <span>Better farming.</span>
+          </h1>
+
+          <p>
+            Your farm operations, production records and business
+            performance — all in one place.
+          </p>
+
+          <div className="login-feature-list">
+            <div className="login-feature">
+              <span className="login-feature-icon">✓</span>
+              <span>Track daily milk production</span>
+            </div>
+
+            <div className="login-feature">
+              <span className="login-feature-icon">✓</span>
+              <span>Manage livestock and farm expenses</span>
+            </div>
+
+            <div className="login-feature">
+              <span className="login-feature-icon">✓</span>
+              <span>Monitor sales and business performance</span>
+            </div>
           </div>
-        )}
+        </div>
 
-        <label style={styles.label} htmlFor="username">
-          Username
-        </label>
+        <div className="login-visual-footer">
+          <span>Designed for modern dairy farms</span>
+          <span>DAIRYTRACK PRO</span>
+        </div>
+      </section>
 
-        <input
-          id="username"
-          style={styles.input}
-          type="text"
-          autoComplete="username"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-          required
-          disabled={loading}
-        />
+      <section className="login-form-panel">
+        <div className="login-form-container">
+          <div className="login-mobile-brand">
+            <img
+  className="login-brand-image"
+  src="/dairytrack-icon.png"
+  alt="DairyTrack Pro"
+/>
+            <span>DairyTrack <strong>Pro</strong></span>
+          </div>
 
-        <label style={styles.label} htmlFor="password">
-          Password
-        </label>
+          <div className="login-heading">
+            <span className="login-welcome-label">
+              WELCOME BACK
+            </span>
 
-        <input
-          id="password"
-          style={styles.input}
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-          disabled={loading}
-        />
+            <h2>Sign in to your account</h2>
 
-        <button style={styles.button} type="submit" disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign in'}
-        </button>
+            <p>
+              Enter your credentials to access your farm workspace.
+            </p>
+          </div>
 
-        <p style={styles.footer}>
-          Secure access for authorized farm users
-        </p>
-      </form>
+          {error && (
+            <div className="login-error" role="alert">
+              <span className="login-error-icon">!</span>
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form className="login-form" onSubmit={handleSubmit}>
+            <div className="login-field">
+              <label htmlFor="username">Username</label>
+
+              <input
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                autoComplete="username"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                required
+                disabled={loading}
+                autoFocus
+              />
+            </div>
+
+            <div className="login-field">
+              <div className="login-password-label">
+                <label htmlFor="password">Password</label>
+              </div>
+
+              <div className="login-password-wrapper">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                  disabled={loading}
+                />
+
+                <button
+                  className="login-password-toggle"
+                  type="button"
+                  onClick={() => setShowPassword((previous) => !previous)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  disabled={loading}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </div>
+
+            <button
+              className="login-submit"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="login-spinner" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Sign in to DairyTrack
+                  <span aria-hidden="true">→</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="login-security-note">
+            <span aria-hidden="true">🔒</span>
+            <span>
+              Secure access for authorized farm users only.
+            </span>
+          </div>
+
+          <footer className="login-form-footer">
+            © {new Date().getFullYear()} DairyTrack Pro
+          </footer>
+        </div>
+      </section>
     </main>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '24px',
-    background: '#f3f7f4',
-    fontFamily: 'Arial, sans-serif',
-  },
-  card: {
-    width: '100%',
-    maxWidth: '400px',
-    boxSizing: 'border-box',
-    padding: '32px',
-    borderRadius: '16px',
-    background: '#ffffff',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-  },
-  logo: {
-    width: '48px',
-    height: '48px',
-    display: 'grid',
-    placeItems: 'center',
-    borderRadius: '12px',
-    background: '#18794e',
-    color: '#ffffff',
-    fontSize: '26px',
-    fontWeight: 'bold',
-  },
-  title: {
-    margin: '20px 0 8px',
-    color: '#173b2b',
-    fontSize: '26px',
-  },
-  subtitle: {
-    margin: '0 0 24px',
-    color: '#68756e',
-    fontSize: '14px',
-  },
-  label: {
-    display: 'block',
-    margin: '16px 0 8px',
-    color: '#26352c',
-    fontSize: '14px',
-    fontWeight: 'bold',
-  },
-  input: {
-    width: '100%',
-    boxSizing: 'border-box',
-    padding: '12px',
-    border: '1px solid #d6ded8',
-    borderRadius: '8px',
-    fontSize: '15px',
-  },
-  button: {
-    width: '100%',
-    marginTop: '24px',
-    padding: '13px',
-    border: 'none',
-    borderRadius: '8px',
-    background: '#18794e',
-    color: '#ffffff',
-    fontSize: '15px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-  },
-  error: {
-    padding: '12px',
-    borderRadius: '8px',
-    background: '#fff0f0',
-    color: '#b42318',
-    fontSize: '14px',
-  },
-  footer: {
-    margin: '20px 0 0',
-    textAlign: 'center',
-    color: '#7a857e',
-    fontSize: '12px',
-  },
-};
 
 export default Login;

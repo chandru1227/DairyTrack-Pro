@@ -1,5 +1,7 @@
+
 import { useEffect, useState } from 'react';
 import './App.css';
+
 import CustomerSalesReport from './pages/CustomerSalesReport';
 import Expenses from './pages/Expenses';
 import Livestock from './pages/Livestock';
@@ -11,92 +13,129 @@ import Reports from './pages/Reports';
 import Customers from './pages/Customers';
 import MilkerManagement from './pages/MilkerManagement';
 import Login from './pages/Login';
+
 function App() {
-    const [user, setUser] = useState(null);
-    const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
   const [currentPage, setCurrentPage] = useState(
     window.location.hash.slice(1) || 'dashboard'
   );
 
-    useEffect(() => {
-      let cancelled = false;
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem('dairytrack-theme') || 'light'
+  );
 
-      async function checkSession() {
-        try {
-          const response = await fetch('/api/auth/me', {
-            credentials: 'same-origin',
-          });
+  const toggleTheme = () => {
+    setTheme((previousTheme) => {
+      const nextTheme = previousTheme === 'light' ? 'dark' : 'light';
 
-          if (response.ok) {
-            const data = await response.json();
+      localStorage.setItem('dairytrack-theme', nextTheme);
 
-            if (!cancelled) {
-              setUser(data);
-            }
-          }
-        } catch {
-          // The user will be asked to log in.
-        } finally {
+      return nextTheme;
+    });
+  };
+
+  const pageTitles = {
+    dashboard: 'Farm Overview',
+    livestock: 'Livestock',
+    breeding: 'Breeding & Calving',
+    milk: 'Milk Production',
+    inventory: 'Inventory',
+    expenses: 'Expenses',
+    sales: 'Sales & Revenue',
+    customers: 'Customers',
+    reports: 'Reports & Analytics',
+    'customer-sales-report': 'Customer Sales Report',
+    milkers: 'Milker Management',
+  };
+
+  // Check the existing login session.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkSession() {
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'same-origin',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
           if (!cancelled) {
-            setAuthChecked(true);
+            setUser(data);
           }
         }
+      } catch {
+        // The login page will be shown if no session is available.
+      } finally {
+        if (!cancelled) {
+          setAuthChecked(true);
+        }
+      }
+    }
+
+    checkSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Apply the successful login response.
+  const handleLogin = (loggedInUser) => {
+    setUser(loggedInUser);
+    setAuthChecked(true);
+  };
+
+  // Log out using the existing CSRF-protected endpoint.
+  const handleLogout = async () => {
+    try {
+      const csrfResponse = await fetch('/api/auth/csrf', {
+        method: 'GET',
+        credentials: 'same-origin',
+      });
+
+      if (!csrfResponse.ok) {
+        throw new Error('Unable to obtain CSRF token for logout.');
       }
 
-      checkSession();
+      const csrfData = await csrfResponse.json();
 
-      return () => {
-        cancelled = true;
-      };
-    }, []);
-const handleLogin = (loggedInUser) => {
-  setUser(loggedInUser);
-  setAuthChecked(true);
-};
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'X-XSRF-TOKEN': csrfData.token,
+        },
+        credentials: 'same-origin',
+      });
 
-const handleLogout = async () => {
-  try {
-    const csrfResponse = await fetch('/api/auth/csrf', {
-      method: 'GET',
-      credentials: 'same-origin',
-    });
-
-    if (!csrfResponse.ok) {
-      throw new Error('Unable to obtain CSRF token for logout.');
+      if (!response.ok) {
+        throw new Error(`Logout failed: ${response.status}`);
+      }
+    } catch (err) {
+      console.error('Logout request failed:', err);
+    } finally {
+      setUser(null);
+      setSummary(null);
+      setCurrentPage('dashboard');
+      window.location.hash = '';
     }
+  };
 
-    const csrfData = await csrfResponse.json();
-
-    const response = await fetch('/api/auth/logout', {
-      method: 'POST',
-      headers: {
-        'X-XSRF-TOKEN': csrfData.token,
-      },
-      credentials: 'same-origin',
-    });
-
-    if (!response.ok) {
-      throw new Error(`Logout failed: ${response.status}`);
-    }
-  } catch (err) {
-    console.error('Logout request failed:', err);
-  } finally {
-    setUser(null);
-    setSummary(null);
-    setCurrentPage('dashboard');
-    window.location.hash = '';
-  }
-};
-
+  // Load dashboard data.
   async function loadDashboardSummary() {
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch('/api/dashboard/summary');
+      const response = await fetch('/api/dashboard/summary', {
+        credentials: 'same-origin',
+      });
 
       if (!response.ok) {
         throw new Error(`Request failed: ${response.status}`);
@@ -119,6 +158,7 @@ const handleLogout = async () => {
     }
   }, [authChecked, user]);
 
+  // Keep sidebar navigation synchronized with the URL hash.
   useEffect(() => {
     function handleHashChange() {
       const page = window.location.hash.slice(1) || 'dashboard';
@@ -137,7 +177,9 @@ const handleLogout = async () => {
         'milkers',
       ];
 
-      setCurrentPage(validPages.includes(page) ? page : 'dashboard');
+      setCurrentPage(
+        validPages.includes(page) ? page : 'dashboard'
+      );
     }
 
     window.addEventListener('hashchange', handleHashChange);
@@ -154,41 +196,7 @@ const handleLogout = async () => {
       window.location.hash = page;
     }
   };
-if (!authChecked) {
-  return <div style={{ padding: '24px' }}>Checking login session...</div>;
-}
 
-if (!user) {
-  return <Login onLogin={handleLogin} />;
-}
-
-if (user.role === 'MILKER') {
-  return (
-    <div className="app">
-      <main className="main-content">
-        <header className="topbar">
-          <div>
-            <div className="breadcrumb">Workspace / Milk Production</div>
-            <h1>Milker Dashboard</h1>
-          </div>
-
-          <div className="profile">
-            <div className="profile-avatar">M</div>
-            <div>
-              <strong>{user.username}</strong>
-              <span>Milker</span>
-            </div>
-            <button type="button" onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-        </header>
-
-        <MilkProduction userRole={user.role} />
-      </main>
-    </div>
-  );
-}
   const formatMoney = (value) =>
     new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -202,46 +210,40 @@ if (user.role === 'MILKER') {
       maximumFractionDigits: 2,
     }).format(Number(value) || 0);
 
+  // Render the currently selected page.
   const renderPage = () => {
     if (currentPage === 'customers') return <Customers />;
-    if (currentPage === 'milk') return <MilkProduction userRole={user.role} />;
+
+    if (currentPage === 'milk') {
+      return <MilkProduction userRole={user.role} />;
+    }
+
     if (currentPage === 'livestock') return <Livestock />;
+
     if (currentPage === 'reports') return <Reports />;
+
     if (currentPage === 'breeding') return <BreedingOverview />;
+
     if (currentPage === 'sales') return <Sales />;
+
     if (currentPage === 'inventory') return <Inventory />;
+
     if (currentPage === 'expenses') return <Expenses />;
+
     if (currentPage === 'customer-sales-report') {
       return <CustomerSalesReport />;
     }
+
     if (currentPage === 'milkers') return <MilkerManagement />;
 
     return (
       <>
-        <header className="topbar">
-          <div>
-            <div className="breadcrumb">Workspace / Dashboard</div>
-            <h1>Farm Overview</h1>
-          </div>
-
-          <div className="profile">
-            <div className="profile-avatar">
-              {user.username.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <strong>{user.username}</strong>
-              <span>Owner</span>
-            </div>
-            <button type="button" onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-        </header>
-
         <section className="welcome">
           <div>
             <span className="eyebrow">DAILY OPERATIONS</span>
+
             <h2>Welcome to your farm dashboard</h2>
+
             <p>
               Monitor production, expenses and farm performance in one place.
             </p>
@@ -249,16 +251,16 @@ if (user.role === 'MILKER') {
 
           <div className="date-chip">
             <span>REPORT DATE</span>
+
             <strong>
               {summary?.reportDate
-                ? new Date(`${summary.reportDate}T12:00:00`).toLocaleDateString(
-                    'en-IN',
-                    {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    }
-                  )
+                ? new Date(
+                    `${summary.reportDate}T12:00:00`
+                  ).toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })
                 : new Date().toLocaleDateString('en-IN', {
                     day: '2-digit',
                     month: 'short',
@@ -271,6 +273,7 @@ if (user.role === 'MILKER') {
         {error && (
           <div role="alert" className="dashboard-error">
             <p>{error}</p>
+
             <button
               type="button"
               className="dashboard-retry"
@@ -287,6 +290,7 @@ if (user.role === 'MILKER') {
             <h2>Performance summary</h2>
             <p>Your key farm indicators at a glance</p>
           </div>
+
           <span className="period-chip">Today's overview</span>
         </section>
 
@@ -296,14 +300,17 @@ if (user.role === 'MILKER') {
               <span>Milk produced</span>
               <span className="stat-icon green">🥛</span>
             </div>
+
             <div className="stat-value">
               {loading
                 ? '...'
                 : summary
                   ? formatLitres(summary.todayMilkProducedLitres)
                   : '—'}
+
               {!loading && summary && <small>litres</small>}
             </div>
+
             <div className="stat-note">Today's production</div>
           </article>
 
@@ -312,6 +319,7 @@ if (user.role === 'MILKER') {
               <span>Sales revenue</span>
               <span className="stat-icon blue">₹</span>
             </div>
+
             <div className="stat-value">
               {loading
                 ? '...'
@@ -319,6 +327,7 @@ if (user.role === 'MILKER') {
                   ? formatMoney(summary.todayRevenue)
                   : '—'}
             </div>
+
             <div className="stat-note">Today's recorded sales</div>
           </article>
 
@@ -327,6 +336,7 @@ if (user.role === 'MILKER') {
               <span>Expenses</span>
               <span className="stat-icon orange">↗</span>
             </div>
+
             <div className="stat-value">
               {loading
                 ? '...'
@@ -334,6 +344,7 @@ if (user.role === 'MILKER') {
                   ? formatMoney(summary.todayExpenses)
                   : '—'}
             </div>
+
             <div className="stat-note">Today's recorded expenses</div>
           </article>
 
@@ -342,9 +353,11 @@ if (user.role === 'MILKER') {
               <span>Active cows</span>
               <span className="stat-icon purple">🐄</span>
             </div>
+
             <div className="stat-value">
               {loading ? '...' : summary ? summary.activeCows : '—'}
             </div>
+
             <div className="stat-note">Currently active livestock</div>
           </article>
         </section>
@@ -352,8 +365,11 @@ if (user.role === 'MILKER') {
         <section className="section-heading lower-heading">
           <div>
             <h2>Monthly performance</h2>
-            <p>Revenue, expenses and inventory alerts for the current month</p>
+            <p>
+              Revenue, expenses and inventory alerts for the current month
+            </p>
           </div>
+
           <button
             type="button"
             className="dashboard-refresh"
@@ -370,6 +386,7 @@ if (user.role === 'MILKER') {
               <span>Monthly revenue</span>
               <span className="stat-icon green">₹</span>
             </div>
+
             <div className="stat-value">
               {loading
                 ? '...'
@@ -377,7 +394,10 @@ if (user.role === 'MILKER') {
                   ? formatMoney(summary.monthlyRevenue)
                   : '—'}
             </div>
-            <div className="stat-note">Total value of recorded sales</div>
+
+            <div className="stat-note">
+              Total value of recorded sales
+            </div>
           </article>
 
           <article className="stat-card">
@@ -385,6 +405,7 @@ if (user.role === 'MILKER') {
               <span>Monthly expenses</span>
               <span className="stat-icon orange">↗</span>
             </div>
+
             <div className="stat-value">
               {loading
                 ? '...'
@@ -392,7 +413,10 @@ if (user.role === 'MILKER') {
                   ? formatMoney(summary.monthlyExpenses)
                   : '—'}
             </div>
-            <div className="stat-note">Recorded expenses this month</div>
+
+            <div className="stat-note">
+              Recorded expenses this month
+            </div>
           </article>
 
           <article className="stat-card">
@@ -400,6 +424,7 @@ if (user.role === 'MILKER') {
               <span>Estimated profit / loss</span>
               <span className="stat-icon purple">₹</span>
             </div>
+
             <div className="stat-value">
               {loading
                 ? '...'
@@ -407,6 +432,7 @@ if (user.role === 'MILKER') {
                   ? formatMoney(summary.monthlyEstimatedProfit)
                   : '—'}
             </div>
+
             <div className="stat-note">
               Monthly revenue minus recorded expenses
             </div>
@@ -417,10 +443,15 @@ if (user.role === 'MILKER') {
               <span>Low-stock items</span>
               <span className="stat-icon orange">📦</span>
             </div>
+
             <div className="stat-value">
               {loading ? '...' : summary ? summary.lowStockItems : '—'}
             </div>
-            <div className="stat-note">Inventory items needing attention</div>
+
+            <div className="stat-note">
+              Inventory items needing attention
+            </div>
+
             <button
               type="button"
               className="dashboard-card-link"
@@ -465,7 +496,9 @@ if (user.role === 'MILKER') {
           <article className="module-card">
             <div className="module-icon orange">₹</div>
             <h3>Expenses</h3>
-            <p>Track farm spending, categories and monthly expense totals.</p>
+            <p>
+              Track farm spending, categories and monthly expense totals.
+            </p>
             <a href="#expenses" onClick={() => navigateTo('expenses')}>
               Open module <span>→</span>
             </a>
@@ -529,11 +562,71 @@ if (user.role === 'MILKER') {
     { page: 'milkers', label: '👷 Milker Management' },
   ];
 
+  if (!authChecked) {
+    return (
+      <div className="auth-loading">
+        Checking login session...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  // Milker interface.
+  if (user.role === 'MILKER') {
+    return (
+      <div className="app" data-theme={theme}>
+        <main className="main-content">
+          <header className="topbar">
+            <div>
+              <div className="breadcrumb">
+                Workspace / Milk Production
+              </div>
+              <h1>Milker Dashboard</h1>
+            </div>
+
+            <div className="profile">
+              <div className="profile-avatar">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+
+              <div className="profile-details">
+                <strong>{user.username}</strong>
+                <span>Milker</span>
+              </div>
+
+              <button
+                type="button"
+                className="theme-toggle"
+                onClick={toggleTheme}
+              >
+                {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+              </button>
+
+              <button type="button" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          </header>
+
+          <MilkProduction userRole={user.role} />
+        </main>
+      </div>
+    );
+  }
+
+  // Owner interface.
   return (
-    <div className="app">
+    <div className="app" data-theme={theme}>
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-icon">D</div>
+          <img
+  className="brand-icon"
+  src="/dairytrack-icon.png"
+  alt="DairyTrack Pro"
+/>
           <div>
             <h2>DairyTrack</h2>
             <span>PRO MANAGEMENT</span>
@@ -560,7 +653,9 @@ if (user.role === 'MILKER') {
         <div className="sidebar-footer">
           <div className="status-dot" />
           <div>
-            <strong>{error ? 'Connection issue' : 'System operational'}</strong>
+            <strong>
+              {error ? 'Connection issue' : 'System operational'}
+            </strong>
             <span>
               {error
                 ? 'Check backend connection'
@@ -570,7 +665,43 @@ if (user.role === 'MILKER') {
         </div>
       </aside>
 
-      <main className="main-content">{renderPage()}</main>
+      <main className="main-content">
+        {/* Shared header: stays visible on every Owner page. */}
+        <header className="topbar">
+          <div>
+            <div className="breadcrumb">
+              Workspace / {pageTitles[currentPage] || 'Farm Overview'}
+            </div>
+            <h1>{pageTitles[currentPage] || 'Farm Overview'}</h1>
+          </div>
+
+          <div className="profile">
+            <div className="profile-avatar">
+              {user.username.charAt(0).toUpperCase()}
+            </div>
+
+            <div className="profile-details">
+              <strong>{user.username}</strong>
+              <span>Owner</span>
+            </div>
+
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+            </button>
+
+            <button type="button" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
+        </header>
+
+        {renderPage()}
+      </main>
     </div>
   );
 }
