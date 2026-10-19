@@ -1,0 +1,9 @@
+
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://dairytrack-pro-backend.onrender.com/api/:path*"
+    }
+  ]
+}
