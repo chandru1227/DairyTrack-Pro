@@ -150,7 +150,3 @@ DairyTrack-Pro/
 -   API documentation, monitoring, and a production database
     backup/migration strategy.
 
-## License
-
-Add a license file if you intend to distribute this project under a
-specific open-source license.
